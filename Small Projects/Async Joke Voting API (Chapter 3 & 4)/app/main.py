@@ -108,12 +108,9 @@ async def create_joke(given_joke : dict):
 # Delete joke by id
 @app.delete("/jokes/{id}")
 async def delete_jokes(id : int):
-    deleted_joke : dict
-    for joke in jokes:
+    for index, joke in enumerate(jokes):
         if joke["id"] == id:
-            deleted_joke = joke
-            jokes.remove(joke)
-            return deleted_joke
+            return jokes.pop(index)
 
 
     raise HTTPException(status_code = 404 , detail = f"There is no joke with id {id} ")
