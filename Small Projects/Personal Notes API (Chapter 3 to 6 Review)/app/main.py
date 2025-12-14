@@ -1,10 +1,14 @@
 
-
 from pydantic import BaseModel, Field
 from fastapi import FastAPI, HTTPException
+from fastapi import Header
+from fastapi import Depends
 import asyncio
 from datetime import datetime
 from typing import Optional
+
+
+
 
 
 # STEP 1. Create the Note Class
@@ -37,6 +41,14 @@ notes = [
 ]
 
 
+# Create a fake dependency.
+def get_current_user(x_user : str = Header(None)):
+    if not x_user:
+        raise HTTPException(status_code = 401, detail = "Unauthorized: X-User header missing")
+
+    return {"username": x_user}
+
+
 # STEP 2.
 # Create the FastAPI application
 app = FastAPI()
@@ -46,35 +58,44 @@ app = FastAPI()
 # STEP 3.
 # CRUD (CREATE (POST) , Read (GET), UPDATE (PUT) , DELETE (DELETE))
 
-# Read all notes
+# Read all notes, Optionally you can sort it or filter with the given tag .
 @app.get("/notes")
-async def read_all_notes():
+async def read_all_notes(user = Depends(get_current_user),tag : Optional[str] = None, sort : Optional[str] = "asc"):
     await asyncio.sleep(0.5)
-    return notes
+    results = notes
+    # if tag is provided filter by tag
+    if tag:
+        # Filter by tag using list comprehensions
+        results = [n for n in results if tag in n.tags]
 
-# Read notes by given user_id and given tags.
+    if sort:
+        sort = sort.lower() # make it lowercase
+        if sort == "asc":
+            results = sorted(results, key = lambda n : n.created_at)
+        elif sort == "desc":
+            results = sorted(results, key = lambda n : n.created_at, reverse = True)
+        else:
+            raise HTTPException(status_code = 400, detail = "Invalid sort type.")
+
+
+    return results
+
+
+# Read notes by given id
 # You CANNOT have two endpoints with the same path.
 @app.get("/notes/{user_id}")
-async def read_notes_tag(user_id :int, tag: Optional[str] = None):
+async def read_notes_tag(user_id :int):
     await asyncio.sleep(0.1)
     read_notes = []
     for note in notes:
         if note.id == user_id:
-
-            # If tag is provided, filter by tag
-            if tag:
-                if tag in note.tags:
-                    read_notes.append(note)
-            else:
-                # No tag given -> include all notes for that user.
-                read_notes.append(note)
+            read_notes.append(note)
 
     if not read_notes:
         raise HTTPException(status_code=404, detail = "No notes found.")
 
 
     return read_notes
-
 
 
 # Create a new Note
@@ -132,4 +153,5 @@ async def update_note(note_id : int, note_in : NoteIn) -> Note:
             notes[index] = updated_note
             return updated_note
 
-    raise HTTPException(status_code=404, detail=f"No note found with id {note_id}")
+    raise HTTPException(status_code=400, detail=f"No note found with id {note_id}")
+    # 400 -> Bad Request.

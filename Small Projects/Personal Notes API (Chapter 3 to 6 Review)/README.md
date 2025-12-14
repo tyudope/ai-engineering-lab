@@ -9,7 +9,6 @@ Create Notes
 
 Read Notes
 - Filter by tag
-- Filter by minimum length
 - Sort by creation date
 
 
