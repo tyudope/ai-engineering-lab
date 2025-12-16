@@ -60,14 +60,20 @@ app = FastAPI()
 
 # Read all notes, Optionally you can sort it or filter with the given tag .
 @app.get("/notes")
-async def read_all_notes(user = Depends(get_current_user),tag : Optional[str] = None, sort : Optional[str] = "asc"):
+async def read_all_notes(user = Depends(get_current_user), tag : Optional[str] = None, sort : Optional[str] = "asc", min_length: int =  0):
     await asyncio.sleep(0.5)
+
     results = notes
+
+    if min_length < 0:
+        raise HTTPException(status_code = 400, detail = "min_length must be >= 0")
     # if tag is provided filter by tag
     if tag:
         # Filter by tag using list comprehensions
         results = [n for n in results if tag in n.tags]
 
+    if min_length:
+        results = [n for n in results if len(n.content) >= min_length]
     if sort:
         sort = sort.lower() # make it lowercase
         if sort == "asc":
@@ -76,8 +82,6 @@ async def read_all_notes(user = Depends(get_current_user),tag : Optional[str] = 
             results = sorted(results, key = lambda n : n.created_at, reverse = True)
         else:
             raise HTTPException(status_code = 400, detail = "Invalid sort type.")
-
-
     return results
 
 
@@ -155,3 +159,5 @@ async def update_note(note_id : int, note_in : NoteIn) -> Note:
 
     raise HTTPException(status_code=400, detail=f"No note found with id {note_id}")
     # 400 -> Bad Request.
+
+
