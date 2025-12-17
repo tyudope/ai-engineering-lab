@@ -10,6 +10,7 @@ Create Notes
 Read Notes
 - Filter by tag
 - Sort by creation date
+- Sort by length of note
 
 
 Update Notes
