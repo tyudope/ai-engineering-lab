@@ -84,7 +84,6 @@ async def read_all_notes(user = Depends(get_current_user), tag : Optional[str] =
             raise HTTPException(status_code = 400, detail = "Invalid sort type.")
     return results
 
-
 # Read notes by given id
 # You CANNOT have two endpoints with the same path.
 @app.get("/notes/{user_id}")
