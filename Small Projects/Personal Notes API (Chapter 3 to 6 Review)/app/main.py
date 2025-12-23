@@ -84,10 +84,13 @@ async def read_all_notes(user = Depends(get_current_user), tag : Optional[str] =
             raise HTTPException(status_code = 400, detail = "Invalid sort type.")
     return results
 
+
+
 # Read notes by given id
 # You CANNOT have two endpoints with the same path.
+# {/user_id} is a path parameter.
 @app.get("/notes/{user_id}")
-async def read_notes_tag(user_id :int):
+async def read_notes_by_id(user_id :int):
     await asyncio.sleep(0.1)
     read_notes = []
     for note in notes:
@@ -95,8 +98,7 @@ async def read_notes_tag(user_id :int):
             read_notes.append(note)
 
     if not read_notes:
-        raise HTTPException(status_code=404, detail = "No notes found.")
-
+        raise HTTPException(status_code=404, detail = "No notes found by the given user id..")
 
     return read_notes
 
@@ -105,11 +107,11 @@ async def read_notes_tag(user_id :int):
 @app.post("/notes", response_model = Note)
 async def create_note(note_in : NoteIn) -> Note:
 
-    # Generate new id, if id is not exist start from 1, if there are notes, find the last node (max id) and plus 1
+    # Generate new id, if id is not exist start from 1, if there are notes, find the last note (max id) and plus 1
     new_id = max([note.id for note in notes]) + 1
 
     # Create time stamps
-    now = datetime.now()
+    # now = datetime.now()
 
     # Build note object from NoteIn
     new_note = Note(
@@ -117,10 +119,11 @@ async def create_note(note_in : NoteIn) -> Note:
         title = note_in.title,
         content = note_in.content,
         tags = note_in.tags,
-        created_at=now
+        created_at= datetime.now()
     )
     notes.append(new_note)
-    await asyncio.sleep(0.1)
+    await asyncio.sleep(0.1) # fake database latency behavior.
+
     return new_note
 
 
