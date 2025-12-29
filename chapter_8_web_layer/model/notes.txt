@@ -1,0 +1,3 @@
+Those are very simple initial models, We're not using any of Pyndatic's features. such as required versus optional.
+or constrained values. This simple code can be enhanced later without massive logic upheveals.
+
