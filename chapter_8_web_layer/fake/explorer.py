@@ -43,7 +43,7 @@ def modify(explorer : Explorer) -> Explorer:
 
 def replace(explorer : Explorer) -> Explorer:
     '''Completely replace an explorer'''
-    return Explorer
+    return explorer
 
 def delete(explorer : Explorer) -> bool:
     '''Delete an explorer; return None if it existed.'''
