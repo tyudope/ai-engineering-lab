@@ -3,7 +3,6 @@ from model.creature import Creature
 from typing import Optional
 import fake.creature as service
 
-
 router = APIRouter(prefix = "/creature")
 
 @router.get("/")
