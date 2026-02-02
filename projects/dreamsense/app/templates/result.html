@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DreamSense — Result</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>DreamSense</h1>
+      <p class="subtitle">Your reflective dream analysis</p>
+    </header>
+
+    <main class="stack">
+      <section class="card">
+        <h2>Summary</h2>
+        <p>{{ result.summary }}</p>
+      </section>
+
+      <section class="card">
+        <h2>Emotions</h2>
+        <div class="chips">
+          {% for e in result.emotions %}
+            <span class="chip">{{ e.label }} · {{ e.confidence }}</span>
+          {% endfor %}
+          {% if result.emotions|length == 0 %}
+            <span class="muted">No clear emotions detected.</span>
+          {% endif %}
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Themes</h2>
+        <div class="chips">
+          {% for t in result.themes %}
+            <span class="chip">{{ t.label }} · {{ t.confidence }}</span>
+          {% endfor %}
+          {% if result.themes|length == 0 %}
+            <span class="muted">No clear themes detected.</span>
+          {% endif %}
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Interpretation</h2>
+        <p>{{ result.interpretation }}</p>
+      </section>
+
+      <section class="card">
+        <h2>Reflection questions</h2>
+        <ul>
+          {% for q in result.reflection_questions %}
+            <li>{{ q }}</li>
+          {% endfor %}
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>Gentle feedback</h2>
+        <ul>
+          {% for f in result.feedback %}
+            <li>{{ f }}</li>
+          {% endfor %}
+        </ul>
+      </section>
+
+      <section class="card note">
+        <h2>Safety note</h2>
+        <p>{{ result.safety_note }}</p>
+      </section>
+
+      <div class="row">
+        <a class="button secondary" href="/">Analyze another</a>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <small>Remember: reflective content, not medical advice.</small>
+    </footer>
+  </div>
+</body>
+</html>

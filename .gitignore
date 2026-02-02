@@ -5,4 +5,8 @@ env/
 __pycache__/
 *.pyc
 Review
+.env
+# Environment variables
+.env
+.env.*
 

@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DreamSense</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>DreamSense</h1>
+      <p class="subtitle">Reflective dream analysis (not medical advice).</p>
+    </header>
+
+    <main class="card">
+        <form id="dream-form" method="post" action="/ui/analyze">
+        <label class="label" for="dream_text">Describe your dream</label>
+        <textarea
+          id="dream_text"
+          name="dream_text"
+          class="textarea"
+          rows="8"
+          minlength="20"
+          maxlength="4000"
+          placeholder="Write the dream with details: people, places, emotions, what happened..."
+          required
+        ></textarea>
+
+        <label class="label" for="user_context">Optional context (what’s going on in life)</label>
+        <input
+          id="user_context"
+          name="user_context"
+          class="input"
+          maxlength="1000"
+          placeholder="Stress, relationships, exams, work pressure, etc."
+        />
+
+        <div class="row">
+          <div class="col">
+            <label class="label" for="intensity">Intensity (1–5)</label>
+            <input
+              id="intensity"
+              name="intensity"
+              class="input"
+              type="number"
+              min="1"
+              max="5"
+              value="{{ default_intensity }}"
+            />
+          </div>
+
+          <div class="col actions">
+            <button id="submit-btn" class="button" type="submit">Analyze dream</button>
+          </div>
+          <div id="loading" class="loading hidden" aria-live="polite">
+            <div class="spinner" aria-hidden="true"></div>
+            <div>
+              <div class="loading-title">Analyzing your dream…</div>
+              <div class="muted">This usually takes a few seconds. Please don’t refresh.</div>
+            </div>
+          </div>
+        </div>
+
+        <p class="disclaimer">
+          This tool offers reflective interpretations and does not diagnose or provide therapy.
+        </p>
+      </form>
+    </main>
+
+    <footer class="footer">
+      <small>Built with FastAPI + Pydantic + OpenAI</small>
+    </footer>
+  </div>
+  <script>
+    (function () {
+      const form = document.getElementById("dream-form");
+      const btn = document.getElementById("submit-btn");
+      const loading = document.getElementById("loading");
+  
+      if (!form || !btn || !loading) return;
+  
+      const DEFAULT_BTN_TEXT = btn.textContent || "Analyze dream";
+      const LOADING_FLAG = "dreamsense_loading";
+  
+      function resetUI() {
+        btn.disabled = false;
+        btn.textContent = DEFAULT_BTN_TEXT;
+        loading.classList.add("hidden");
+        sessionStorage.removeItem(LOADING_FLAG);
+      }
+  
+      // Mark loading on submit (prevents double-submit & shows spinner)
+      form.addEventListener("submit", function () {
+        sessionStorage.setItem(LOADING_FLAG, "1");
+        btn.disabled = true;
+        btn.textContent = "Analyzing…";
+        loading.classList.remove("hidden");
+      });
+  
+      // If the page is restored (back/forward cache), pageshow fires.
+      window.addEventListener("pageshow", function () {
+        // Always reset when we show the page again.
+        resetUI();
+      });
+  
+      // If browser doesn't trigger pageshow in the way you expect,
+      // this catches cases where the tab becomes visible again.
+      document.addEventListener("visibilitychange", function () {
+        if (document.visibilityState === "visible") {
+          // If we *were* in loading state, reset.
+          if (sessionStorage.getItem(LOADING_FLAG) === "1") {
+            resetUI();
+          }
+        }
+      });
+  
+      // Also reset on a normal fresh load
+      window.addEventListener("load", function () {
+        resetUI();
+      });
+    })();
+  </script>
+</body>
+</html>
