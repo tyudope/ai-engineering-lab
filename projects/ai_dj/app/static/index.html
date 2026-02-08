@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AI DJ — Party Playlist Builder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700;800&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #0c0f14;
+        --bg-2: #111825;
+        --panel: #141c2b;
+        --ink: #e9eef7;
+        --muted: #9aa8bf;
+        --accent: #4ce0b3;
+        --accent-2: #ff8bd7;
+        --accent-3: #7aa2ff;
+        --danger: #ff6b6b;
+        --shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+        --radius: 16px;
+      }
+
+      * { box-sizing: border-box; }
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        font-family: "Space Grotesk", system-ui, -apple-system, sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(1200px 600px at 10% -10%, rgba(122, 162, 255, 0.25), transparent),
+          radial-gradient(1000px 500px at 110% 10%, rgba(76, 224, 179, 0.18), transparent),
+          linear-gradient(160deg, #0b0f14 0%, #0e1521 40%, #0b1018 100%);
+      }
+
+      .shell {
+        min-height: 100%;
+        display: grid;
+        grid-template-columns: minmax(280px, 420px) minmax(320px, 1fr);
+        gap: 32px;
+        padding: 48px min(6vw, 72px) 64px;
+      }
+
+      .brand {
+        font-family: "Montserrat", sans-serif;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: var(--accent);
+      }
+
+      h1 {
+        font-family: "Montserrat", sans-serif;
+        font-size: clamp(2.2rem, 3.4vw, 3.4rem);
+        margin: 12px 0 8px;
+        line-height: 1.05;
+      }
+
+      p.lead {
+        color: var(--muted);
+        font-size: 1.05rem;
+        margin: 0 0 28px;
+      }
+
+      .panel {
+        background: linear-gradient(160deg, rgba(20, 28, 43, 0.9), rgba(10, 14, 24, 0.95));
+        border: 1px solid rgba(122, 162, 255, 0.15);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 24px;
+        backdrop-filter: blur(10px);
+      }
+
+      .panel h2 {
+        margin: 0 0 12px;
+        font-size: 1.2rem;
+      }
+
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+
+      label {
+        font-size: 0.92rem;
+        color: var(--muted);
+      }
+
+      input, textarea {
+        background: #0c111b;
+        color: var(--ink);
+        border: 1px solid rgba(122, 162, 255, 0.2);
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-size: 0.98rem;
+        outline: none;
+        transition: border 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      input:focus, textarea:focus {
+        border-color: var(--accent-3);
+        box-shadow: 0 0 0 3px rgba(122, 162, 255, 0.2);
+      }
+
+      textarea { min-height: 120px; resize: vertical; }
+
+      .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .chip {
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(122, 162, 255, 0.15);
+        color: var(--ink);
+        font-size: 0.82rem;
+      }
+
+      .actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .meta-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: 0.85rem;
+      }
+
+      .char-count {
+        color: var(--muted);
+      }
+
+      .field-error {
+        color: var(--danger);
+        font-weight: 600;
+      }
+
+      button {
+        border: none;
+        border-radius: 12px;
+        padding: 12px 18px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.2s ease;
+      }
+
+      button.primary {
+        background: linear-gradient(120deg, var(--accent) 0%, var(--accent-3) 100%);
+        color: #061018;
+        box-shadow: 0 10px 20px rgba(76, 224, 179, 0.3);
+      }
+
+      button.secondary {
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--ink);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+
+      button:hover:not(:disabled) { transform: translateY(-1px); }
+
+      .result {
+        display: grid;
+        gap: 14px;
+      }
+
+      .result .analysis {
+        background: rgba(255, 139, 215, 0.08);
+        border: 1px solid rgba(255, 139, 215, 0.2);
+        border-radius: 14px;
+        padding: 16px;
+        color: var(--ink);
+      }
+
+      .songs {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: 10px;
+      }
+
+      .song {
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: rgba(76, 224, 179, 0.08);
+        border: 1px solid rgba(76, 224, 179, 0.2);
+      }
+
+      .status {
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+
+      .error {
+        color: var(--danger);
+        font-weight: 600;
+      }
+
+      @media (max-width: 980px) {
+        .shell {
+          grid-template-columns: 1fr;
+          padding: 36px 6vw 60px;
+        }
+        .row {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <section>
+        <div class="brand">AI DJ</div>
+        <h1>Craft a live-ready playlist in seconds.</h1>
+        <p class="lead">
+          Feed the vibe, define the emotional arc, and get a curated set with reasoning.
+        </p>
+        <div class="panel">
+          <h2>Party Brief</h2>
+          <form id="dj-form">
+            <div class="field">
+              <label for="theme">Theme of the party</label>
+              <textarea id="theme" name="theme" minlength="20" maxlength="4000" required placeholder="Neon rooftop afterparty in Tokyo, 2am–5am, cinematic but upbeat"></textarea>
+              <div class="meta-row">
+                <span class="field-error" id="theme-error" hidden></span>
+                <span class="char-count" id="theme-count">0 / 4000</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="flow">Emotional flow (comma-separated)</label>
+              <input id="flow" name="flow" required value="mysterious, slow-burn groove, euphoric lift, peak rush, warm glide-down" />
+              <div class="meta-row">
+                <span class="field-error" id="flow-error" hidden></span>
+                <span class="char-count" id="flow-count">0 items</span>
+              </div>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label for="duration">Duration (minutes)</label>
+                <input id="duration" name="duration" type="number" min="10" max="600" value="180" />
+                <div class="meta-row">
+                  <span class="field-error" id="duration-error" hidden></span>
+                  <span class="char-count" id="duration-count">10–600</span>
+                </div>
+              </div>
+              <div class="field">
+                <label>Flow preview</label>
+                <div class="chips" id="flow-chips"></div>
+              </div>
+            </div>
+            <div class="actions">
+              <button class="primary" type="submit" id="submit-btn">Generate Playlist</button>
+              <button class="secondary" type="button" id="sample-btn">Load Sample</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>DJ Set</h2>
+        <div class="status" id="status">Ready when you are.</div>
+        <div class="result" id="result" hidden>
+          <div class="analysis" id="analysis"></div>
+          <ul class="songs" id="songs"></ul>
+        </div>
+        <div class="error" id="error" hidden></div>
+      </section>
+    </div>
+
+    <script>
+      const form = document.getElementById("dj-form");
+      const flowInput = document.getElementById("flow");
+      const flowChips = document.getElementById("flow-chips");
+      const statusEl = document.getElementById("status");
+      const resultEl = document.getElementById("result");
+      const analysisEl = document.getElementById("analysis");
+      const songsEl = document.getElementById("songs");
+      const errorEl = document.getElementById("error");
+      const submitBtn = document.getElementById("submit-btn");
+      const sampleBtn = document.getElementById("sample-btn");
+      const themeCount = document.getElementById("theme-count");
+      const flowCount = document.getElementById("flow-count");
+      const durationCount = document.getElementById("duration-count");
+      const themeError = document.getElementById("theme-error");
+      const flowError = document.getElementById("flow-error");
+      const durationError = document.getElementById("duration-error");
+
+      const samples = [
+        {
+          theme: "Desert sunset festival, dusty boots, glowing lanterns, indie-dance vibe",
+          flow: "breezy start, swagger groove, sunset bliss, starlit pulse, gentle cool-off",
+          duration: 240
+        },
+        {
+          theme: "Retro arcade night, 80s synths, neon signs, playful energy",
+          flow: "nostalgic intro, bouncy fun, driving synthwave, peak dance rush, chill pixel fadeout",
+          duration: 120
+        }
+      ];
+
+      const renderChips = () => {
+        flowChips.innerHTML = "";
+        const parts = flowInput.value
+          .split(",")
+          .map((p) => p.trim())
+          .filter(Boolean);
+        parts.forEach((part) => {
+          const chip = document.createElement("span");
+          chip.className = "chip";
+          chip.textContent = part;
+          flowChips.appendChild(chip);
+        });
+        flowCount.textContent = `${parts.length} item${parts.length === 1 ? "" : "s"}`;
+      };
+
+      const setStatus = (text) => {
+        statusEl.textContent = text;
+      };
+
+      const setLoading = (loading) => {
+        submitBtn.disabled = loading;
+        submitBtn.textContent = loading ? "Mixing..." : "Generate Playlist";
+      };
+
+      const updateThemeCount = () => {
+        const len = document.getElementById("theme").value.length;
+        themeCount.textContent = `${len} / 4000`;
+      };
+
+      const clearFieldErrors = () => {
+        themeError.hidden = true;
+        flowError.hidden = true;
+        durationError.hidden = true;
+      };
+
+      const validateFields = () => {
+        clearFieldErrors();
+        let valid = true;
+
+        const theme = document.getElementById("theme").value.trim();
+        const flow = flowInput.value
+          .split(",")
+          .map((p) => p.trim())
+          .filter(Boolean);
+        const duration = Number(document.getElementById("duration").value);
+
+        if (theme.length < 20 || theme.length > 4000) {
+          themeError.textContent = "20–4000 characters required.";
+          themeError.hidden = false;
+          valid = false;
+        }
+
+        if (flow.length < 2 || flow.length > 5) {
+          flowError.textContent = "Provide 2–5 flow steps.";
+          flowError.hidden = false;
+          valid = false;
+        }
+
+        if (!Number.isFinite(duration) || duration < 10 || duration > 600) {
+          durationError.textContent = "10–600 minutes only.";
+          durationError.hidden = false;
+          valid = false;
+        }
+
+        return { valid, theme, flow, duration };
+      };
+
+      flowInput.addEventListener("input", () => {
+        renderChips();
+      });
+
+      document.getElementById("theme").addEventListener("input", updateThemeCount);
+      document.getElementById("duration").addEventListener("input", () => {
+        durationCount.textContent = "10–600";
+      });
+
+      updateThemeCount();
+      renderChips();
+
+      sampleBtn.addEventListener("click", () => {
+        const pick = samples[Math.floor(Math.random() * samples.length)];
+        document.getElementById("theme").value = pick.theme;
+        flowInput.value = pick.flow;
+        document.getElementById("duration").value = pick.duration;
+        renderChips();
+      });
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        errorEl.hidden = true;
+        resultEl.hidden = true;
+        setLoading(true);
+        setStatus("Curating the set...");
+
+        const { valid, theme, flow, duration } = validateFields();
+        if (!valid) {
+          errorEl.textContent = "Fix the highlighted fields before sending.";
+          errorEl.hidden = false;
+          setStatus("Validation failed.");
+          setLoading(false);
+          return;
+        }
+
+        const payload = {
+          theme_of_party: theme,
+          emotional_flow_of_the_songs: flow,
+          duration
+        };
+
+        try {
+          const res = await fetch("/dj/create_playlist", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data.detail || "Something went wrong.");
+          }
+
+          analysisEl.textContent = data.analyze;
+          songsEl.innerHTML = "";
+          data.songs.forEach((song) => {
+            const li = document.createElement("li");
+            li.className = "song";
+            li.textContent = song;
+            songsEl.appendChild(li);
+          });
+
+          resultEl.hidden = false;
+          setStatus("Playlist ready.");
+        } catch (err) {
+          errorEl.textContent = err.message;
+          errorEl.hidden = false;
+          setStatus("Failed to build playlist.");
+        } finally {
+          setLoading(false);
+        }
+      });
+    </script>
+  </body>
+</html>
